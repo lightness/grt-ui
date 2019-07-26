@@ -1,7 +1,9 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-// import example from './module-example'
+import packages from './package';
+import options from './options';
+import spinner from './spinner';
 
 Vue.use(Vuex);
 
@@ -13,7 +15,9 @@ Vue.use(Vuex);
 export default function (/* { ssrContext } */) {
   const Store = new Vuex.Store({
     modules: {
-      // example
+      package: packages,
+      options,
+      spinner,
     },
 
     // enable strict mode (adds overhead!)

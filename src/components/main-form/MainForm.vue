@@ -1,7 +1,34 @@
 <template>
   <div class="q-pa-md">
     <q-form @submit="onSubmit" class="q-gutter-md">
-      <div class="text-h2">Search</div>
+      <div class="text-h2">Search place</div>
+      <div class="row">
+        <div class="col flex items-center">
+          <q-radio v-model="place" val="user" label="User" />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="user"
+            ref="userInput"
+            label="Username"
+            :disable="isOrg"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col flex items-center">
+          <q-radio v-model="place" val="org" label="Organization" />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="org"
+            ref="orgInput"
+            label="Organization"
+            :disable="!isOrg"
+          />
+        </div>
+      </div>
+      <div class="text-h2">Search type</div>
       <div class="row">
         <div class="col flex items-center">
           <q-radio v-model="type" val="npm" label="NPM package version" />
@@ -9,6 +36,7 @@
         <div class="col">
           <q-input
             v-model="pkgVersion"
+            ref="input"
             label="Version"
             :rules="[ (val) => pkgVersionRule(val) || 'Please type something']"
             :disable="isNode"
@@ -28,7 +56,12 @@
         <q-card-section>
           <div class="row">
             <div class="col-6" v-for="item in optionList" :key="item.val">
-              <q-checkbox v-model="optionsNpm" :val="item.val" :label="item.label" />
+              <s-check-option
+                :option="item.option"
+                :label="item.label"
+                :defaultVal="item.defaultVal"
+                :key="isNode"
+              />
             </div>
           </div>
         </q-card-section>
@@ -36,50 +69,45 @@
       <div>
         <q-btn label="Submit" type="submit" color="primary" />
       </div>
-      {{optionsNpm}}
     </q-form>
   </div>
 </template>
 
 <script>
-const formSetting = [
-  {
-    type: 'npm',
-    data: [
-      { val: 'deps', label: 'deps' },
-      { val: 'devDeps', label: 'devDeps' },
-      { val: 'peerDeps', label: 'peerDeps' },
-      { val: 'yarn.lock', label: 'yarn.lock' },
-      { val: 'package-lock.json', label: 'package-lock.json' },
-    ],
-  }, {
-    type: 'node',
-    data: [
-      { val: '.nvmrc', label: '.nvmrc' },
-      { val: 'package.json', label: 'package.json' },
-      { val: 'engince', label: 'engince' },
-    ],
-  },
-];
+import { mapState } from 'vuex';
+import CheckOption from '../check-option/CheckOption';
+import { packageActions } from '../../store/package/const';
+import { StorageService } from '../../services/storage';
 
 export default {
-  name: 'main-form',
+  name: 'MainForm',
+  components: {
+    's-check-option': CheckOption,
+  },
   data() {
     return {
       type: 'npm',
+      place: 'user',
+      user: '',
+      org: '',
       pkgVersion: '',
-      optionsNpm: [],
     };
   },
   computed: {
     isNode() {
       return this.type === 'node';
     },
+    isOrg() {
+      return this.place === 'org';
+    },
     optionList() {
-      const setting = formSetting.find(t => t.type === this.type);
+      const setting = this.$config.formSetting.find(t => t.type === this.type);
 
       return setting ? setting.data : [];
     },
+    ...mapState({
+      options: state => state.options.options,
+    }),
   },
   methods: {
     pkgVersionRule(val) {
@@ -90,23 +118,52 @@ export default {
       return val && val.length > 0;
     },
     onSubmit() {
-      console.log(`type - ${this.type}`);
-      console.log(`pkgVersion - ${this.pkgVersion}`);
-      console.log(`optionsNpm - ${this.optionsNpm}`);
+      const token = StorageService.getToken();
+      let typeOptions;
+
+      if (this.isNode) {
+        typeOptions = {
+          node: true,
+        };
+      } else {
+        typeOptions = {
+          package: this.pkgVersion,
+        };
+      }
+
+      this.$store.dispatch(`package/${packageActions.GET_PACKAGES}`, {
+        url: this.$config.githubGrtUrl,
+        data: {
+          ...typeOptions,
+          ...this.options,
+          [this.place]: this[this.place],
+          token,
+        },
+      });
     },
   },
   watch: {
     type() {
-      this.optionsNpm = [];
       this.pkgVersion = '';
+      this.$refs.input.resetValidation();
+    },
+    place() {
+      this.user = '';
+      this.org = '';
     },
   },
 };
 </script>
 
 <style>
-.q-pa-md {
-  width: 100%;
-  max-width: 500px;
-}
+  .q-pa-md {
+    width: 100%;
+    max-width: 80%;
+  }
+
+  @media screen and (max-width: 768px) {
+    .q-pa-md {
+      max-width: 100%;
+    }
+  }
 </style>

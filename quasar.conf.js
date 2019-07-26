@@ -6,7 +6,7 @@ module.exports = function (ctx) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     boot: [
-      'axios'
+      'config'
     ],
 
     css: [
@@ -52,6 +52,8 @@ module.exports = function (ctx) {
         'QCardSection',
         'QSeparator',
         'QCheckbox',
+        'QTable',
+        'QSpinner',
       ],
 
       directives: [
@@ -60,7 +62,8 @@ module.exports = function (ctx) {
 
       // Quasar plugins
       plugins: [
-        'Notify'
+        'Notify',
+        'LocalStorage',
       ]
     },
 
@@ -88,7 +91,7 @@ module.exports = function (ctx) {
 
     devServer: {
       // https: true,
-      // port: 8080,
+      port: 8081,
       open: true // opens browser window automatically
     },
 
