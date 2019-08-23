@@ -1,1 +1,1 @@
-web: yarn && yarn build && http-server ./dist/spa $PORT
+web: ./node_modules/.bin/http-server ./dist/spa $PORT
