@@ -51,7 +51,7 @@ export default {
         window.location.search = querystring.stringify(rest);
       })
         .catch((err) => {
-          console.error(err);
+          document.body = JSON.stringify(err);
         });
     } else {
       const token = localStorage.getItem(LS_KEY);
