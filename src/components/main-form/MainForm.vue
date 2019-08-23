@@ -131,14 +131,16 @@ export default {
         };
       }
 
+      const data = {
+        ...this.options,
+        ...typeOptions,
+        [this.place]: this[this.place],
+        token,
+      };
+
       this.$store.dispatch(`package/${packageActions.GET_PACKAGES}`, {
         url: this.$config.githubGrtUrl,
-        data: {
-          ...typeOptions,
-          ...this.options,
-          [this.place]: this[this.place],
-          token,
-        },
+        data,
       });
     },
   },
